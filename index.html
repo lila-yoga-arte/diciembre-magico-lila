@@ -158,6 +158,65 @@
       border-radius: 30px;
       text-decoration: none;
       font-size: 15px;
+      transition: transform .2s;
+    }
+
+    .share:hover,
+    .contact-button:hover {
+      transform: translateY(-3px);
+    }
+
+    /* SECCIÓN DE COLABORACIÓN Y CONTACTO */
+
+    .community {
+      max-width: 620px;
+      margin: 55px auto 0;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    .community-card {
+      padding: 27px 24px;
+      margin-bottom: 18px;
+      border: 1px solid #ffffff45;
+      border-radius: 18px;
+      background: #ffffff12;
+    }
+
+    .community-card h3 {
+      color: var(--amarillo);
+      font-family: Georgia, serif;
+      font-size: 25px;
+      font-weight: normal;
+      margin: 0 0 12px;
+    }
+
+    .community-card p {
+      font-size: 14px;
+      line-height: 1.8;
+      margin: 0 auto 20px;
+      max-width: 480px;
+    }
+
+    .contact-button {
+      display: inline-block;
+      padding: 12px 25px;
+      border-radius: 30px;
+      text-decoration: none;
+      font-family: 'Poppins', sans-serif;
+      font-size: 14px;
+      font-weight: 500;
+      transition: transform .2s, background .2s;
+    }
+
+    .donate-button {
+      color: #70466f;
+      background: var(--amarillo);
+    }
+
+    .whatsapp-button {
+      color: #ffffff;
+      background: #477d65;
+      border: 1px solid #ffffff55;
     }
 
     footer {
@@ -219,6 +278,10 @@
       .intro {
         padding: 19px;
       }
+
+      .community-card {
+        padding: 23px 18px;
+      }
     }
   </style>
 </head>
@@ -251,6 +314,45 @@
     <a class="share" id="share" href="#" target="_blank" rel="noopener">
       Compartir el calendario ♡
     </a>
+
+    <!-- COLABORACIÓN Y CONTACTO -->
+
+    <section class="community">
+
+      <div class="community-card">
+        <h3>¿Te gustaría colaborar? ♡</h3>
+        <p>
+          Esta propuesta es libre y gratuita. Si disfrutaste del calendario
+          y te nace hacer un aporte para ayudarme a seguir creando,
+          podés hacerlo acá. ¡Gracias por hacerlo posible!
+        </p>
+        <a
+          class="contact-button donate-button"
+          href="https://link.mercadopago.com.ar/lilayogaarte"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Hacer un aporte voluntario ♡
+        </a>
+      </div>
+
+      <div class="community-card">
+        <h3>¿Tenés alguna consulta?</h3>
+        <p>
+          Si querés escribirme, contarme algo o simplemente saludar,
+          ¡estoy del otro lado!
+        </p>
+        <a
+          class="contact-button whatsapp-button"
+          href="https://wa.me/5491140651719?text=%C2%A1Hola%20Yami!%20Estoy%20disfrutando%20del%20Calendario%20de%20Adviento%20Yogui.%20%E2%99%A1"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Escribirme por WhatsApp ♡
+        </a>
+      </div>
+
+    </section>
 
     <footer>
       LÎLÂ · Yoga & Arte
