@@ -164,8 +164,6 @@
       transform: translateY(-3px);
     }
 
-    /* SECCIÓN DE COLABORACIÓN Y CONTACTO */
-
     .community {
       max-width: 620px;
       margin: 55px auto 0;
@@ -223,8 +221,6 @@
       font-size: 13px;
       letter-spacing: 1px;
     }
-
-    /* VENTANITA */
 
     .modal {
       display: none;
@@ -390,8 +386,6 @@
     </footer>
   </main>
 
-  <!-- VENTANA EMERGENTE -->
-
   <div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
     <div class="modal-content">
       <button class="close" id="close" aria-label="Cerrar">×</button>
@@ -400,8 +394,6 @@
       <div id="modal-media"></div>
     </div>
   </div>
-
-  <!-- CONEXIÓN CON SUPABASE -->
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
@@ -420,8 +412,6 @@
     const modalText = document.getElementById("modal-text");
     const modalMedia = document.getElementById("modal-media");
     const notice = document.getElementById("notice");
-
-    // Fecha actual de Argentina.
 
     function getArgentinaDate() {
       const parts = new Intl.DateTimeFormat("en-US", {
@@ -448,12 +438,6 @@
 
     function getUnlockedThrough() {
       const date = getArgentinaDate();
-
-      // EXCEPCIÓN TEMPORAL DE PRUEBA:
-      // Durante noviembre de 2026 solo se habilita la ventanita 01.
-      if (date.year === 2026 && date.month === 11) {
-        return 1;
-      }
 
       if (date.year < 2026 || (date.year === 2026 && date.month < 12)) {
         return 0;
@@ -518,9 +502,6 @@
 
       modalMedia.appendChild(element);
     }
-
-    // Abre una ventanita y solicita al servidor
-    // el enlace temporal del archivo privado, si existe.
 
     async function openDoor(record) {
       modalTitle.textContent = record.titulo || ("Ventanita " + record.numero);
