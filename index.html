@@ -1,0 +1,303 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Diciembre Mágico · Calendario de Adviento Yogui</title>
+  <meta name="description" content="24 días de yoga, arte, juegos y sorpresas.">
+  <style>
+    :root {
+      --lila: #9f6aa3;
+      --amarillo: #ece12a;
+      --dorado: #e4b121;
+      --terracota: #c64e3f;
+      --blanco: #ffffff;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--blanco);
+      font-family: Georgia, serif;
+      background:
+        radial-gradient(circle at 20% 15%, #b681b8 0, transparent 30%),
+        radial-gradient(circle at 85% 80%, #805287 0, transparent 35%),
+        var(--lila);
+      text-align: center;
+      overflow-x: hidden;
+    }
+
+    .container {
+      width: min(920px, 92%);
+      margin: auto;
+      padding: 55px 0 45px;
+    }
+
+    .ornament {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: .10;
+      background-image:
+        repeating-linear-gradient(45deg, transparent 0 35px, #fff 36px 37px, transparent 38px 70px),
+        repeating-linear-gradient(-45deg, transparent 0 35px, #fff 36px 37px, transparent 38px 70px);
+      mask-image: radial-gradient(ellipse, black, transparent 75%);
+    }
+
+    header, .intro, .calendar, footer {
+      position: relative;
+    }
+
+    .eyebrow {
+      color: var(--dorado);
+      letter-spacing: 5px;
+      font-size: 12px;
+      text-transform: uppercase;
+      margin-bottom: 14px;
+    }
+
+    h1 {
+      color: var(--amarillo);
+      font-size: clamp(42px, 8vw, 76px);
+      font-weight: normal;
+      line-height: 1;
+      margin: 0;
+      text-shadow: 0 3px 15px #56385e55;
+    }
+
+    h2 {
+      font-size: clamp(17px, 3vw, 25px);
+      font-weight: normal;
+      letter-spacing: 2px;
+      margin: 14px 0 20px;
+    }
+
+    .tagline {
+      color: var(--amarillo);
+      font-size: 18px;
+      margin: 24px 0 35px;
+    }
+
+    .intro {
+      max-width: 650px;
+      margin: 0 auto 42px;
+      padding: 24px;
+      background: #ffffff12;
+      border: 1px solid #ffffff35;
+      border-radius: 18px;
+      line-height: 1.75;
+      font-size: 16px;
+    }
+
+    .calendar {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 13px;
+      max-width: 700px;
+      margin: auto;
+    }
+
+    .door {
+      aspect-ratio: 1;
+      border: 1px solid var(--dorado);
+      border-radius: 13px;
+      background: linear-gradient(145deg, #b981b7, #805487);
+      color: var(--amarillo);
+      font-family: Georgia, serif;
+      font-size: clamp(24px, 5vw, 38px);
+      box-shadow: 0 5px 12px #38213d30;
+      cursor: pointer;
+      transition: transform .2s, background .2s;
+    }
+
+    .door:hover:not(:disabled) {
+      transform: translateY(-4px);
+      background: var(--terracota);
+    }
+
+    .door:disabled {
+      cursor: not-allowed;
+      opacity: .55;
+    }
+
+    .door.open {
+      background: #e4b121;
+      color: #70466f;
+    }
+
+    .notice {
+      margin: 28px 0;
+      color: #ffffffd9;
+      font-size: 14px;
+    }
+
+    .share {
+      display: inline-block;
+      margin-top: 12px;
+      padding: 12px 22px;
+      color: #70466f;
+      background: var(--amarillo);
+      border-radius: 30px;
+      text-decoration: none;
+      font-size: 15px;
+    }
+
+    footer {
+      margin-top: 55px;
+      color: #ffffffb5;
+      font-size: 13px;
+      letter-spacing: 1px;
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 5;
+      background: #281b2dcc;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .modal.visible { display: flex; }
+
+    .modal-content {
+      max-width: 440px;
+      width: 100%;
+      padding: 35px 25px;
+      border: 1px solid var(--dorado);
+      border-radius: 20px;
+      background: var(--lila);
+      line-height: 1.7;
+    }
+
+    .modal-content h3 {
+      color: var(--amarillo);
+      font-size: 28px;
+      font-weight: normal;
+    }
+
+    .close {
+      border: 0;
+      background: transparent;
+      color: white;
+      font-size: 25px;
+      cursor: pointer;
+    }
+
+    @media (max-width: 520px) {
+      .container { padding-top: 38px; }
+      .calendar { grid-template-columns: repeat(3, 1fr); gap: 10px; }
+      .intro { padding: 19px; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="ornament"></div>
+
+  <main class="container">
+    <header>
+      <div class="eyebrow">Una propuesta para compartir</div>
+      <h1>Diciembre Mágico</h1>
+      <h2>Calendario de Adviento Yogui</h2>
+      <p class="tagline">24 días de yoga, arte, juegos y sorpresas.</p>
+    </header>
+
+    <section class="intro">
+      <p>¡Llegó diciembre! Y este año se me ocurrió preparar algo especial para compartir con ustedes.</p>
+      <p>Un calendario de Adviento con 24 pequeñas sorpresas inspiradas en el yoga, el arte, la filosofía y todo ese universo que tanto nos gusta explorar.</p>
+      <p>Cada día vamos a descubrir algo nuevo: una práctica, una idea, un juego, una historia o quizás algún regalito.</p>
+      <p>La propuesta es simple: abrir una ventanita por día, disfrutar y jugar un poquito.</p>
+      <p>Y si conocés a alguien con quien quieras compartir esta propuesta, ¡regalásela! La magia también está en hacerla circular. ♡</p>
+      <p>Todo es libre y gratuito, y si te nace colaborar con un aporte, también habrá un lugarcito para eso.</p>
+      <p>¡Ojalá lo disfrutes tanto como yo disfruté preparándolo! ♡</p>
+    </section>
+
+    <section class="calendar" id="calendar" aria-label="Calendario de Adviento">
+    </section>
+
+    <p class="notice" id="notice">Cada día se abre una nueva ventanita. ♡</p>
+
+    <a class="share" id="share" href="#" target="_blank" rel="noopener">
+      Compartir el calendario ♡
+    </a>
+
+    <footer>
+      LÎLÂ · Yoga & Arte
+      <p>La vida como un juego divino</p>
+    </footer>
+  </main>
+
+  <div class="modal" id="modal">
+    <div class="modal-content">
+      <button class="close" id="close" aria-label="Cerrar">×</button>
+      <h3 id="modal-title"></h3>
+      <p id="modal-text"></p>
+    </div>
+  </div>
+
+  <script>
+    const calendar = document.getElementById("calendar");
+    const modal = document.getElementById("modal");
+    const modalTitle = document.getElementById("modal-title");
+    const modalText = document.getElementById("modal-text");
+
+    // Fecha de Argentina
+    const argentinaDate = new Intl.DateTimeFormat("en-CA", {
+      timeZone: "America/Argentina/Buenos_Aires",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit"
+    }).format(new Date());
+
+    const today = new Date(argentinaDate + "T12:00:00");
+    const year = 2026;
+
+    for (let day = 1; day <= 24; day++) {
+      const door = document.createElement("button");
+      door.className = "door";
+      door.textContent = String(day).padStart(2, "0");
+
+      const unlockDate = new Date(year, 11, day, 0, 0, 0);
+      const available = today >= unlockDate;
+
+      door.disabled = !available;
+
+      if (available) {
+        door.classList.add("open");
+      }
+
+      door.addEventListener("click", () => {
+        if (!available) return;
+
+        modalTitle.textContent = "Ventana " + day;
+        modalText.textContent = "¡Esta ventanita ya está abierta! Pronto vamos a descubrir acá una sorpresa especial. ♡";
+        modal.classList.add("visible");
+      });
+
+      calendar.appendChild(door);
+    }
+
+    document.getElementById("close").addEventListener("click", () => {
+      modal.classList.remove("visible");
+    });
+
+    modal.addEventListener("click", (event) => {
+      if (event.target === modal) modal.classList.remove("visible");
+    });
+
+    const shareText = encodeURIComponent(
+      "¡Te regalo Diciembre Mágico! 24 días de yoga, arte, juegos y sorpresas. ♡"
+    );
+    const pageUrl = window.location.href;
+
+    document.getElementById("share").href =
+      "https://wa.me/?text=" + shareText + "%20" + encodeURIComponent(pageUrl);
+  </script>
+</body>
+</html>
