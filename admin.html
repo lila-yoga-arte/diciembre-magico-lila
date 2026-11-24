@@ -1,0 +1,182 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Administración · Diciembre Mágico</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      padding: 30px 18px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(145deg, #9f6aa3, #76517f);
+      font-family: 'Poppins', sans-serif;
+      color: white;
+    }
+
+    .panel {
+      width: 100%;
+      max-width: 440px;
+      padding: 38px 28px;
+      border: 1px solid rgba(255,255,255,.3);
+      border-radius: 24px;
+      background: rgba(255,255,255,.13);
+      text-align: center;
+      box-shadow: 0 15px 45px rgba(40,20,50,.2);
+    }
+
+    h1 {
+      color: #ece12a;
+      font-family: Georgia, serif;
+      font-size: 32px;
+      font-weight: normal;
+      margin: 0 0 8px;
+    }
+
+    p {
+      line-height: 1.7;
+      font-size: 14px;
+    }
+
+    input {
+      width: 100%;
+      padding: 14px;
+      margin: 9px 0;
+      border: 1px solid rgba(255,255,255,.4);
+      border-radius: 12px;
+      background: rgba(255,255,255,.92);
+      font: inherit;
+      color: #49334e;
+    }
+
+    button {
+      width: 100%;
+      padding: 14px;
+      margin-top: 14px;
+      border: 0;
+      border-radius: 12px;
+      background: #ece12a;
+      color: #49334e;
+      font: inherit;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    #message {
+      min-height: 24px;
+      margin-top: 18px;
+      font-size: 13px;
+    }
+
+    #privateArea { display: none; }
+
+    .logout {
+      background: #c64e3f;
+      color: white;
+    }
+  </style>
+</head>
+
+<body>
+
+  <main class="panel">
+    <h1>Diciembre Mágico</h1>
+    <p>Panel privado de administración · LÎLÂ</p>
+
+    <section id="loginArea">
+      <p>Ingresá con tu cuenta de administradora.</p>
+
+      <input id="email" type="email" placeholder="Tu email" autocomplete="username">
+
+      <input id="password" type="password" placeholder="Tu contraseña" autocomplete="current-password">
+
+      <button id="loginButton">Ingresar</button>
+    </section>
+
+    <section id="privateArea">
+      <h2>¡Hola, Yami! ♡</h2>
+      <p>Tu acceso de administradora está confirmado.</p>
+      <p>Próximamente vas a poder gestionar las 24 ventanitas desde acá.</p>
+      <button class="logout" id="logoutButton">Cerrar sesión</button>
+    </section>
+
+    <div id="message" role="status"></div>
+  </main>
+
+  <script>
+    const SUPABASE_URL = "https://gktohrkxtvednuwadlra.supabase.co";
+
+    // Pegá tu Publishable key entre estas comillas.
+    const SUPABASE_KEY = "sb_publishable_KEt1AR5Lbi0MAi9wP35RGQ_NEAJXTia";
+
+    const client = window.supabase.createClient(
+      SUPABASE_URL,
+      SUPABASE_KEY
+    );
+
+    const loginArea = document.getElementById("loginArea");
+    const privateArea = document.getElementById("privateArea");
+    const message = document.getElementById("message");
+
+    async function checkAdmin() {
+      const { data: { session } } = await client.auth.getSession();
+
+      if (!session) return;
+
+      const { data, error } = await client.rpc("is_admin");
+
+      if (error || data !== true) {
+        await client.auth.signOut();
+        message.textContent = "No se pudo verificar el acceso de administradora.";
+        return;
+      }
+
+      loginArea.style.display = "none";
+      privateArea.style.display = "block";
+      message.textContent = "Acceso autorizado ♡";
+    }
+
+    document.getElementById("loginButton").addEventListener("click", async () => {
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value;
+
+      message.textContent = "Verificando acceso...";
+
+      const { error } = await client.auth.signInWithPassword({
+        email,
+        password
+      });
+
+      if (error) {
+        message.textContent = "No pudimos ingresar. Revisá tu email y contraseña.";
+        return;
+      }
+
+      await checkAdmin();
+    });
+
+    document.getElementById("logoutButton").addEventListener("click", async () => {
+      await client.auth.signOut();
+      privateArea.style.display = "none";
+      loginArea.style.display = "block";
+      message.textContent = "Sesión cerrada.";
+      document.getElementById("password").value = "";
+    });
+
+    checkAdmin();
+  </script>
+
+</body>
+</html>
