@@ -97,41 +97,58 @@
   font-size: 15px;
 }
 
-    .calendar {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 13px;
-      max-width: 700px;
-      margin: auto;
-    }
+   .calendar {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 13px;
+  max-width: 700px;
+  margin: auto;
+  position: relative;
+  isolation: isolate;
+}
+
+.calendar::before {
+  content: "";
+  position: absolute;
+  inset: -45px;
+  background-image: url("a_decorative_spiritual_geometric_mandala_on_a_tran.png");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+  opacity: 0.13;
+  z-index: 0;
+  pointer-events: none;
+}
 
     .door {
-      aspect-ratio: 1;
-      border: 1px solid var(--dorado);
-      border-radius: 13px;
-      background: linear-gradient(145deg, #b981b7, #805487);
-      color: var(--amarillo);
-      font-family: Georgia, serif;
-      font-size: clamp(24px, 5vw, 38px);
-      box-shadow: 0 5px 12px #38213d30;
-      cursor: pointer;
-      transition: transform .2s, background .2s;
-    }
+  aspect-ratio: 1;
+  border: 1px solid var(--dorado);
+  border-radius: 13px;
+  background: linear-gradient(145deg, #b981b7, #805487);
+  color: var(--amarillo);
+  font-family: Georgia, serif;
+  font-size: clamp(24px, 5vw, 38px);
+  box-shadow: 0 5px 12px #38213d30;
+  cursor: pointer;
+  transition: transform .2s, background .2s;
+  position: relative;
+  z-index: 1;
+}
 
-    .door:hover:not(:disabled) {
-      transform: translateY(-4px);
-      background: var(--terracota);
-    }
+.door:hover:not(:disabled) {
+  transform: translateY(-4px);
+  background: var(--terracota);
+}
 
-    .door:disabled {
-      cursor: not-allowed;
-      opacity: .55;
-    }
+.door:disabled {
+  cursor: not-allowed;
+  opacity: .55;
+}
 
-    .door.open {
-      background: #e4b121;
-      color: #70466f;
-    }
+.door.open {
+  background: #e4b121;
+  color: #70466f;
+}
 
     .notice {
       margin: 28px 0;
