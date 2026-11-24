@@ -20,9 +20,7 @@
       --blanco: #ffffff;
     }
 
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     body {
       margin: 0;
@@ -307,22 +305,16 @@
     }
 
     @media (max-width: 520px) {
-      .container {
-        padding-top: 38px;
-      }
+      .container { padding-top: 38px; }
 
       .calendar {
         grid-template-columns: repeat(3, 1fr);
         gap: 10px;
       }
 
-      .intro {
-        padding: 19px;
-      }
+      .intro { padding: 19px; }
 
-      .community-card {
-        padding: 23px 18px;
-      }
+      .community-card { padding: 23px 18px; }
     }
   </style>
 </head>
@@ -347,16 +339,13 @@
       <p>¡Ojalá lo disfrutes tanto como yo disfruté preparándolo! ♡</p>
     </section>
 
-    <section class="calendar" id="calendar" aria-label="Calendario de Adviento">
-    </section>
+    <section class="calendar" id="calendar" aria-label="Calendario de Adviento"></section>
 
     <p class="notice" id="notice">Cada día se abre una nueva ventanita. ♡</p>
 
     <a class="share" id="share" href="#" target="_blank" rel="noopener noreferrer">
       Compartir el calendario ♡
     </a>
-
-    <!-- COLABORACIÓN Y CONTACTO -->
 
     <section class="community">
 
@@ -418,9 +407,6 @@
 
   <script>
     const SUPABASE_URL = "https://gktohrkxtvednuwadlra.supabase.co";
-
-    // Pegá aquí la misma Publishable key que utilizaste en admin.html.
-    // Nunca uses la Secret key.
     const SUPABASE_KEY = "sb_publishable_KEt1AR5Lbi0MAi9wP35RGQ_NEAJXTia";
 
     const db = window.supabase.createClient(
@@ -437,7 +423,8 @@
 
     // Fecha actual de Argentina.
     // Esta fecha solo controla la presentación visual.
-    // La seguridad real está en las políticas de Supabase.
+    // La seguridad real está en Supabase y en la función del servidor.
+
     function getArgentinaDate() {
       const parts = new Intl.DateTimeFormat("en-US", {
         timeZone: "America/Argentina/Buenos_Aires",
@@ -528,14 +515,48 @@
       modalMedia.appendChild(element);
     }
 
-    function openDoor(record) {
+    // Abre una ventanita y solicita al servidor
+    // el enlace temporal del archivo privado, si existe.
+
+    async function openDoor(record) {
       modalTitle.textContent = record.titulo || ("Ventanita " + record.numero);
       modalText.textContent = record.contenido || "";
       modalMedia.replaceChildren();
 
-      addMedia(record);
+      const loading = document.createElement("p");
+      loading.textContent = "Abriendo tu sorpresa... ♡";
+      modalMedia.appendChild(loading);
 
       modal.classList.add("visible");
+
+      try {
+        const { data, error } = await db.functions.invoke("quick-action", {
+          body: { numero: record.numero }
+        });
+
+        if (error) {
+          throw error;
+        }
+
+        modalMedia.replaceChildren();
+
+        const recordWithMedia = {
+          ...record,
+          media_url: data?.media_url || null
+        };
+
+        addMedia(recordWithMedia);
+
+      } catch (error) {
+        console.error("No se pudo cargar el recurso:", error);
+        modalMedia.replaceChildren();
+
+        const errorMessage = document.createElement("p");
+        errorMessage.textContent =
+          "No pudimos cargar el archivo en este momento. Intentá nuevamente dentro de un ratito. ♡";
+
+        modalMedia.appendChild(errorMessage);
+      }
     }
 
     async function loadCalendar() {
@@ -570,8 +591,6 @@
 
         const record = doors.get(day);
 
-        // Además de la seguridad de Supabase, verificamos
-        // la fecha para mostrar correctamente el calendario.
         const available = Boolean(
           record &&
           record.published === true &&
