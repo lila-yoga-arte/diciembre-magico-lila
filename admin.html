@@ -5,178 +5,396 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Administración · Diciembre Mágico</title>
-
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
-
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 
   <style>
     * { box-sizing: border-box; }
 
     body {
       margin: 0;
-      min-height: 100vh;
-      padding: 30px 18px;
-      display: grid;
-      place-items: center;
-      background: linear-gradient(145deg, #9f6aa3, #76517f);
-      font-family: 'Poppins', sans-serif;
+      padding: 24px;
+      background: #9f6aa3;
       color: white;
+      font-family: 'Poppins', sans-serif;
     }
 
-    .panel {
-      width: 100%;
-      max-width: 440px;
-      padding: 38px 28px;
-      border: 1px solid rgba(255,255,255,.3);
-      border-radius: 24px;
-      background: rgba(255,255,255,.13);
-      text-align: center;
-      box-shadow: 0 15px 45px rgba(40,20,50,.2);
+    .container {
+      max-width: 1050px;
+      margin: auto;
     }
 
     h1 {
       color: #ece12a;
-      font-family: Georgia, serif;
-      font-size: 32px;
-      font-weight: normal;
-      margin: 0 0 8px;
+      text-align: center;
+      margin-bottom: 5px;
     }
 
-    p {
-      line-height: 1.7;
-      font-size: 14px;
+    .subtitle {
+      text-align: center;
+      margin-top: 0;
+      margin-bottom: 30px;
     }
 
-    input {
+    .panel, .door-card {
+      background: rgba(255,255,255,.13);
+      border: 1px solid rgba(255,255,255,.3);
+      border-radius: 16px;
+      padding: 22px;
+      margin-bottom: 20px;
+    }
+
+    input, textarea, select {
       width: 100%;
-      padding: 14px;
-      margin: 9px 0;
-      border: 1px solid rgba(255,255,255,.4);
-      border-radius: 12px;
-      background: rgba(255,255,255,.92);
+      padding: 12px;
+      margin: 7px 0 16px;
+      border: 0;
+      border-radius: 9px;
       font: inherit;
-      color: #49334e;
+      color: #49364c;
+      background: white;
+    }
+
+    textarea {
+      min-height: 180px;
+      resize: vertical;
+    }
+
+    label {
+      font-size: 14px;
+      font-weight: 600;
     }
 
     button {
-      width: 100%;
-      padding: 14px;
-      margin-top: 14px;
       border: 0;
-      border-radius: 12px;
+      border-radius: 9px;
+      padding: 12px 18px;
       background: #ece12a;
-      color: #49334e;
+      color: #49364c;
       font: inherit;
       font-weight: 600;
       cursor: pointer;
     }
 
-    #message {
-      min-height: 24px;
-      margin-top: 18px;
-      font-size: 13px;
+    button:hover { opacity: .88; }
+
+    .secondary {
+      background: white;
+      margin-left: 8px;
     }
 
-    #privateArea { display: none; }
-
-    .logout {
+    .danger {
       background: #c64e3f;
       color: white;
+    }
+
+    .doors {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(135px, 1fr));
+      gap: 12px;
+    }
+
+    .door-card {
+      margin: 0;
+      text-align: center;
+      padding: 16px 10px;
+    }
+
+    .door-card button {
+      width: 100%;
+      margin-top: 10px;
+      padding: 9px;
+    }
+
+    .door-number {
+      font-size: 28px;
+      color: #ece12a;
+      font-weight: 700;
+    }
+
+    .door-title {
+      font-size: 13px;
+      overflow-wrap: anywhere;
+      min-height: 38px;
+    }
+
+    .status {
+      font-size: 12px;
+      opacity: .9;
+    }
+
+    .hidden { display: none !important; }
+
+    #message {
+      margin: 14px 0;
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .checkbox-line {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 12px 0 20px;
+    }
+
+    .checkbox-line input {
+      width: auto;
+      margin: 0;
+    }
+
+    @media (max-width: 600px) {
+      body { padding: 14px; }
+      .panel { padding: 16px; }
+      .secondary { margin: 8px 0 0; }
     }
   </style>
 </head>
 
 <body>
+<div class="container">
 
-  <main class="panel">
-    <h1>Diciembre Mágico</h1>
-    <p>Panel privado de administración · LÎLÂ</p>
+  <h1>Diciembre Mágico</h1>
+  <p class="subtitle">Panel privado de administración · LÎLÂ ♡</p>
 
-    <section id="loginArea">
-      <p>Ingresá con tu cuenta de administradora.</p>
+  <section id="loginArea" class="panel">
+    <h2>¡Hola, Yami! ♡</h2>
+    <p>Ingresá para administrar tus 24 ventanitas.</p>
 
-      <input id="email" type="email" placeholder="Tu email" autocomplete="username">
+    <form id="loginForm">
+      <label for="email">Email</label>
+      <input id="email" type="email" required>
 
-      <input id="password" type="password" placeholder="Tu contraseña" autocomplete="current-password">
+      <label for="password">Contraseña</label>
+      <input id="password" type="password" required>
 
-      <button id="loginButton">Ingresar</button>
-    </section>
+      <button type="submit">Ingresar</button>
+    </form>
+  </section>
 
-    <section id="privateArea">
+  <section id="privateArea" class="hidden">
+    <div class="panel">
       <h2>¡Hola, Yami! ♡</h2>
-      <p>Tu acceso de administradora está confirmado.</p>
-      <p>Próximamente vas a poder gestionar las 24 ventanitas desde acá.</p>
-      <button class="logout" id="logoutButton">Cerrar sesión</button>
-    </section>
+      <p>Desde acá podés preparar y publicar las 24 sorpresas.</p>
+      <button id="logoutButton" class="secondary">Cerrar sesión</button>
+    </div>
 
-    <div id="message" role="status"></div>
-  </main>
+    <div class="panel">
+      <h2>Mis 24 ventanitas</h2>
+      <p>Elegí una puerta para editar su contenido.</p>
+      <div id="doors" class="doors"></div>
+    </div>
 
-  <script>
-    const SUPABASE_URL = "https://gktohrkxtvednuwadlra.supabase.co";
+    <div id="editor" class="panel hidden">
+      <h2 id="editorHeading">Editar ventanita</h2>
 
-    // Pegá tu Publishable key entre estas comillas.
-    const SUPABASE_KEY = "sb_publishable_KEt1AR5Lbi0MAi9wP35RGQ_NEAJXTia";
+      <form id="doorForm">
+        <input type="hidden" id="doorNumber">
 
-    const client = window.supabase.createClient(
-      SUPABASE_URL,
-      SUPABASE_KEY
-    );
+        <label for="doorTitle">Título</label>
+        <input id="doorTitle" type="text" placeholder="Ej: Una pausa para respirar">
 
-    const loginArea = document.getElementById("loginArea");
-    const privateArea = document.getElementById("privateArea");
-    const message = document.getElementById("message");
+        <label for="doorContent">Contenido</label>
+        <textarea id="doorContent" placeholder="Escribí acá el contenido de esta ventanita..."></textarea>
 
-    async function checkAdmin() {
-      const { data: { session } } = await client.auth.getSession();
+        <label for="doorType">Tipo de contenido</label>
+        <select id="doorType">
+          <option value="texto">Texto</option>
+          <option value="imagen">Imagen</option>
+          <option value="video">Video</option>
+          <option value="audio">Audio</option>
+          <option value="pdf">PDF</option>
+          <option value="enlace">Enlace</option>
+          <option value="mixto">Mixto</option>
+        </select>
 
-      if (!session) return;
+        <label for="mediaUrl">Enlace del archivo o recurso (opcional)</label>
+        <input id="mediaUrl" type="url" placeholder="https://...">
 
-      const { data, error } = await client.rpc("is_admin");
+        <div class="checkbox-line">
+          <input id="published" type="checkbox">
+          <label for="published">Publicar esta ventanita</label>
+        </div>
 
-      if (error || data !== true) {
-        await client.auth.signOut();
-        message.textContent = "No se pudo verificar el acceso de administradora.";
-        return;
-      }
+        <button type="submit">Guardar cambios</button>
+        <button type="button" id="cancelButton" class="secondary">Cancelar</button>
+      </form>
+    </div>
+  </section>
 
-      loginArea.style.display = "none";
-      privateArea.style.display = "block";
-      message.textContent = "Acceso autorizado ♡";
+  <p id="message" role="status">Cargando...</p>
+</div>
+
+<script>
+  const SUPABASE_URL = "https://gktohrkxtvednuwadlra.supabase.co";
+
+  // Pegá acá la misma Publishable key que ya usaste en tu versión anterior.
+  const SUPABASE_KEY = "sb_publishable_KEt1AR5Lbi0MAi9wP35RGQ_NEAJXTia";
+
+  const client = window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY
+  );
+
+  const loginArea = document.getElementById("loginArea");
+  const privateArea = document.getElementById("privateArea");
+  const message = document.getElementById("message");
+  const doorsContainer = document.getElementById("doors");
+  const editor = document.getElementById("editor");
+
+  function showMessage(text) {
+    message.textContent = text;
+  }
+
+  async function checkAdmin() {
+    const { data: { session } } = await client.auth.getSession();
+
+    if (!session) {
+      loginArea.classList.remove("hidden");
+      privateArea.classList.add("hidden");
+      showMessage("");
+      return;
     }
 
-    document.getElementById("loginButton").addEventListener("click", async () => {
-      const email = document.getElementById("email").value.trim();
-      const password = document.getElementById("password").value;
+    const { data, error } = await client.rpc("is_admin");
 
-      message.textContent = "Verificando acceso...";
-
-      const { error } = await client.auth.signInWithPassword({
-        email,
-        password
-      });
-
-      if (error) {
-        message.textContent = "No pudimos ingresar. Revisá tu email y contraseña.";
-        return;
-      }
-
-      await checkAdmin();
-    });
-
-    document.getElementById("logoutButton").addEventListener("click", async () => {
+    if (error || data !== true) {
       await client.auth.signOut();
-      privateArea.style.display = "none";
-      loginArea.style.display = "block";
-      message.textContent = "Sesión cerrada.";
-      document.getElementById("password").value = "";
+      loginArea.classList.remove("hidden");
+      privateArea.classList.add("hidden");
+      showMessage("No se pudo verificar el acceso de administradora.");
+      return;
+    }
+
+    loginArea.classList.add("hidden");
+    privateArea.classList.remove("hidden");
+    showMessage("Acceso autorizado ♡");
+    await loadDoors();
+  }
+
+  document.getElementById("loginForm").addEventListener("submit", async (event) => {
+    event.preventDefault();
+    showMessage("Ingresando...");
+
+    const email = document.getElementById("email").value;
+    const password = document.getElementById("password").value;
+
+    const { error } = await client.auth.signInWithPassword({
+      email,
+      password
     });
 
-    checkAdmin();
-  </script>
+    if (error) {
+      showMessage("No se pudo ingresar. Revisá el email y la contraseña.");
+      return;
+    }
 
+    await checkAdmin();
+  });
+
+  document.getElementById("logoutButton").addEventListener("click", async () => {
+    await client.auth.signOut();
+    editor.classList.add("hidden");
+    await checkAdmin();
+  });
+
+  async function loadDoors() {
+    showMessage("Cargando ventanitas...");
+
+    const { data, error } = await client
+      .from("ventanitas")
+      .select("*")
+      .order("numero");
+
+    if (error) {
+      showMessage("No se pudieron cargar las ventanitas: " + error.message);
+      return;
+    }
+
+    const savedDoors = data || [];
+    doorsContainer.replaceChildren();
+
+    for (let number = 1; number <= 24; number++) {
+      const door = savedDoors.find(item => item.numero === number);
+
+      const card = document.createElement("div");
+      card.className = "door-card";
+
+      const numberElement = document.createElement("div");
+      numberElement.className = "door-number";
+      numberElement.textContent = String(number).padStart(2, "0");
+
+      const titleElement = document.createElement("div");
+      titleElement.className = "door-title";
+      titleElement.textContent = door?.titulo || "Sin título";
+
+      const statusElement = document.createElement("div");
+      statusElement.className = "status";
+      statusElement.textContent = door
+        ? (door.published ? "Publicada" : "Borrador")
+        : "Sin crear";
+
+      const editButton = document.createElement("button");
+      editButton.textContent = "Editar";
+      editButton.addEventListener("click", () => openEditor(number, door));
+
+      card.append(numberElement, titleElement, statusElement, editButton);
+      doorsContainer.appendChild(card);
+    }
+
+    showMessage("Tus 24 ventanitas están listas ♡");
+  }
+
+  function openEditor(number, door) {
+    document.getElementById("doorNumber").value = number;
+    document.getElementById("editorHeading").textContent =
+      "Ventanita " + String(number).padStart(2, "0");
+
+    document.getElementById("doorTitle").value = door?.titulo || "";
+    document.getElementById("doorContent").value = door?.contenido || "";
+    document.getElementById("doorType").value = door?.tipo_contenido || "texto";
+    document.getElementById("mediaUrl").value = door?.media_url || "";
+    document.getElementById("published").checked = door?.published || false;
+
+    editor.classList.remove("hidden");
+    editor.scrollIntoView({ behavior: "smooth" });
+  }
+
+  document.getElementById("cancelButton").addEventListener("click", () => {
+    editor.classList.add("hidden");
+  });
+
+  document.getElementById("doorForm").addEventListener("submit", async (event) => {
+    event.preventDefault();
+    showMessage("Guardando cambios...");
+
+    const number = Number(document.getElementById("doorNumber").value);
+
+    const doorData = {
+      numero: number,
+      titulo: document.getElementById("doorTitle").value.trim(),
+      contenido: document.getElementById("doorContent").value,
+      tipo_contenido: document.getElementById("doorType").value,
+      media_url: document.getElementById("mediaUrl").value.trim() || null,
+      published: document.getElementById("published").checked,
+      updated_at: new Date().toISOString()
+    };
+
+    const { error } = await client
+      .from("ventanitas")
+      .upsert(doorData, { onConflict: "numero" });
+
+    if (error) {
+      showMessage("No se pudo guardar: " + error.message);
+      return;
+    }
+
+    editor.classList.add("hidden");
+    showMessage("¡Ventanita guardada! ♡");
+    await loadDoors();
+  });
+
+  checkAdmin();
+</script>
 </body>
 </html>
