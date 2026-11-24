@@ -422,8 +422,6 @@
     const notice = document.getElementById("notice");
 
     // Fecha actual de Argentina.
-    // Esta fecha solo controla la presentación visual.
-    // La seguridad real está en Supabase y en la función del servidor.
 
     function getArgentinaDate() {
       const parts = new Intl.DateTimeFormat("en-US", {
@@ -450,6 +448,12 @@
 
     function getUnlockedThrough() {
       const date = getArgentinaDate();
+
+      // EXCEPCIÓN TEMPORAL DE PRUEBA:
+      // Durante noviembre de 2026 solo se habilita la ventanita 01.
+      if (date.year === 2026 && date.month === 11) {
+        return 1;
+      }
 
       if (date.year < 2026 || (date.year === 2026 && date.month < 12)) {
         return 0;
