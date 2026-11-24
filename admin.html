@@ -55,6 +55,11 @@
       background: white;
     }
 
+    input[type="file"] {
+      color: #49364c;
+      font-size: 13px;
+    }
+
     textarea {
       min-height: 180px;
       resize: vertical;
@@ -77,6 +82,11 @@
     }
 
     button:hover { opacity: .88; }
+
+    button:disabled {
+      opacity: .6;
+      cursor: wait;
+    }
 
     .secondary {
       background: white;
@@ -121,6 +131,23 @@
     .status {
       font-size: 12px;
       opacity: .9;
+    }
+
+    .help {
+      font-size: 12px;
+      opacity: .9;
+      margin-top: -10px;
+      margin-bottom: 16px;
+      line-height: 1.6;
+    }
+
+    .file-status {
+      background: rgba(255,255,255,.13);
+      border-radius: 9px;
+      padding: 10px 12px;
+      font-size: 12px;
+      margin: -5px 0 16px;
+      overflow-wrap: anywhere;
     }
 
     .hidden { display: none !important; }
@@ -190,6 +217,7 @@
 
       <form id="doorForm">
         <input type="hidden" id="doorNumber">
+        <input type="hidden" id="mediaPath">
 
         <label for="doorTitle">Título</label>
         <input id="doorTitle" type="text" placeholder="Ej: Una pausa para respirar">
@@ -208,15 +236,41 @@
           <option value="mixto">Mixto</option>
         </select>
 
-        <label for="mediaUrl">Enlace del archivo o recurso (opcional)</label>
+        <label for="mediaFile">Subir un archivo desde tu computadora</label>
+        <input
+          id="mediaFile"
+          type="file"
+          accept="image/*,video/*,audio/*,application/pdf"
+        >
+
+        <p class="help">
+          Podés subir imágenes, videos, audios o PDF. Tamaño máximo: 50 MB.
+          Los archivos se guardan de forma privada.
+        </p>
+
+        <div id="mediaStatus" class="file-status">
+          Todavía no hay ningún archivo cargado.
+        </div>
+
+        <label for="mediaUrl">O agregar un enlace externo</label>
         <input id="mediaUrl" type="url" placeholder="https://...">
+
+        <p class="help">
+          Usá esta opción si el recurso está alojado en otro sitio.
+          Si subís un archivo desde tu computadora, no necesitás completar este campo.
+        </p>
+
+        <div class="checkbox-line">
+          <input id="removeMedia" type="checkbox">
+          <label for="removeMedia">Quitar el archivo o enlace actual</label>
+        </div>
 
         <div class="checkbox-line">
           <input id="published" type="checkbox">
           <label for="published">Publicar esta ventanita</label>
         </div>
 
-        <button type="submit">Guardar cambios</button>
+        <button id="saveButton" type="submit">Guardar cambios</button>
         <button type="button" id="cancelButton" class="secondary">Cancelar</button>
       </form>
     </div>
@@ -227,8 +281,6 @@
 
 <script>
   const SUPABASE_URL = "https://gktohrkxtvednuwadlra.supabase.co";
-
-  // Pegá acá la misma Publishable key que ya usaste en tu versión anterior.
   const SUPABASE_KEY = "sb_publishable_KEt1AR5Lbi0MAi9wP35RGQ_NEAJXTia";
 
   const client = window.supabase.createClient(
@@ -241,6 +293,9 @@
   const message = document.getElementById("message");
   const doorsContainer = document.getElementById("doors");
   const editor = document.getElementById("editor");
+  const mediaFile = document.getElementById("mediaFile");
+  const mediaStatus = document.getElementById("mediaStatus");
+  const saveButton = document.getElementById("saveButton");
 
   function showMessage(text) {
     message.textContent = text;
@@ -354,11 +409,53 @@
     document.getElementById("doorContent").value = door?.contenido || "";
     document.getElementById("doorType").value = door?.tipo_contenido || "texto";
     document.getElementById("mediaUrl").value = door?.media_url || "";
+    document.getElementById("mediaPath").value = door?.media_path || "";
     document.getElementById("published").checked = door?.published || false;
+
+    mediaFile.value = "";
+    document.getElementById("removeMedia").checked = false;
+
+    if (door?.media_path) {
+      mediaStatus.textContent = "♡ Ya hay un archivo privado cargado en esta ventanita.";
+    } else if (door?.media_url) {
+      mediaStatus.textContent = "♡ Esta ventanita tiene un enlace externo cargado.";
+    } else {
+      mediaStatus.textContent = "Todavía no hay ningún archivo cargado.";
+    }
 
     editor.classList.remove("hidden");
     editor.scrollIntoView({ behavior: "smooth" });
   }
+
+  mediaFile.addEventListener("change", () => {
+    const file = mediaFile.files[0];
+
+    if (!file) {
+      return;
+    }
+
+    const maxSize = 50 * 1024 * 1024;
+
+    if (file.size > maxSize) {
+      mediaFile.value = "";
+      mediaStatus.textContent = "El archivo supera los 50 MB. Elegí uno más pequeño.";
+      return;
+    }
+
+    const validType =
+      file.type.startsWith("image/") ||
+      file.type.startsWith("video/") ||
+      file.type.startsWith("audio/") ||
+      file.type === "application/pdf";
+
+    if (!validType) {
+      mediaFile.value = "";
+      mediaStatus.textContent = "Ese formato no está permitido. Elegí una imagen, video, audio o PDF.";
+      return;
+    }
+
+    mediaStatus.textContent = "Archivo seleccionado: " + file.name;
+  });
 
   document.getElementById("cancelButton").addEventListener("click", () => {
     editor.classList.add("hidden");
@@ -366,32 +463,117 @@
 
   document.getElementById("doorForm").addEventListener("submit", async (event) => {
     event.preventDefault();
-    showMessage("Guardando cambios...");
 
-    const number = Number(document.getElementById("doorNumber").value);
+    saveButton.disabled = true;
 
-    const doorData = {
-      numero: number,
-      titulo: document.getElementById("doorTitle").value.trim(),
-      contenido: document.getElementById("doorContent").value,
-      tipo_contenido: document.getElementById("doorType").value,
-      media_url: document.getElementById("mediaUrl").value.trim() || null,
-      published: document.getElementById("published").checked,
-      updated_at: new Date().toISOString()
-    };
+    try {
+      showMessage("Preparando los cambios...");
 
-    const { error } = await client
-      .from("ventanitas")
-      .upsert(doorData, { onConflict: "numero" });
+      const number = Number(document.getElementById("doorNumber").value);
+      const selectedFile = mediaFile.files[0];
+      const removeCurrent = document.getElementById("removeMedia").checked;
 
-    if (error) {
-      showMessage("No se pudo guardar: " + error.message);
-      return;
+      const oldPath = document.getElementById("mediaPath").value;
+      let mediaPath = oldPath || null;
+      let mediaUrl = document.getElementById("mediaUrl").value.trim() || null;
+
+      // Si se seleccionó un archivo nuevo, lo subimos al almacenamiento privado.
+      if (selectedFile) {
+        const maxSize = 50 * 1024 * 1024;
+
+        const validType =
+          selectedFile.type.startsWith("image/") ||
+          selectedFile.type.startsWith("video/") ||
+          selectedFile.type.startsWith("audio/") ||
+          selectedFile.type === "application/pdf";
+
+        if (selectedFile.size > maxSize) {
+          throw new Error("El archivo supera el límite de 50 MB.");
+        }
+
+        if (!validType) {
+          throw new Error("El formato del archivo no está permitido.");
+        }
+
+        showMessage("Subiendo archivo...");
+
+        const safeName = selectedFile.name
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .replace(/[^\w.-]+/g, "_");
+
+        const filePath =
+          "ventanita-" +
+          String(number).padStart(2, "0") +
+          "/" +
+          Date.now() +
+          "-" +
+          safeName;
+
+        const { error: uploadError } = await client.storage
+          .from("diciembre-magico")
+          .upload(filePath, selectedFile, {
+            cacheControl: "3600",
+            upsert: false,
+            contentType: selectedFile.type
+          });
+
+        if (uploadError) {
+          throw new Error("No se pudo subir el archivo: " + uploadError.message);
+        }
+
+        mediaPath = filePath;
+        mediaUrl = null;
+      } else if (removeCurrent) {
+        mediaPath = null;
+        mediaUrl = null;
+      } else if (mediaUrl) {
+        // Si se eligió un enlace externo, dejamos de usar el archivo privado anterior.
+        mediaPath = null;
+      }
+
+      const doorData = {
+        numero: number,
+        titulo: document.getElementById("doorTitle").value.trim(),
+        contenido: document.getElementById("doorContent").value,
+        tipo_contenido: document.getElementById("doorType").value,
+        media_url: mediaUrl,
+        media_path: mediaPath,
+        published: document.getElementById("published").checked,
+        updated_at: new Date().toISOString()
+      };
+
+      showMessage("Guardando ventanita...");
+
+      const { error } = await client
+        .from("ventanitas")
+        .upsert(doorData, { onConflict: "numero" });
+
+      if (error) {
+        throw new Error("No se pudo guardar: " + error.message);
+      }
+
+      // Una vez guardados los cambios, intentamos borrar el archivo anterior
+      // si fue reemplazado o quitado.
+      if (oldPath && oldPath !== mediaPath) {
+        const { error: deleteError } = await client.storage
+          .from("diciembre-magico")
+          .remove([oldPath]);
+
+        if (deleteError) {
+          console.warn("No se pudo eliminar el archivo anterior:", deleteError.message);
+        }
+      }
+
+      editor.classList.add("hidden");
+      showMessage("¡Ventanita guardada! ♡");
+      await loadDoors();
+
+    } catch (error) {
+      showMessage(error.message || "Ocurrió un error al guardar.");
+    } finally {
+      saveButton.disabled = false;
     }
-
-    editor.classList.add("hidden");
-    showMessage("¡Ventanita guardada! ♡");
-    await loadDoors();
   });
 
   checkAdmin();
