@@ -150,6 +150,110 @@
       overflow-wrap: anywhere;
     }
 
+    /* Vista previa con el mismo aspecto de las ventanitas del calendario */
+    .preview-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 20;
+      background: #281b2dcc;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      overflow-y: auto;
+    }
+
+    .preview-modal.visible { display: flex; }
+
+    .preview-content {
+      max-width: 520px;
+      width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+      padding: 30px 25px;
+      border: 1px solid #e4b121;
+      border-radius: 20px;
+      background: #9f6aa3;
+      color: white;
+      line-height: 1.7;
+      font-family: 'Poppins', sans-serif;
+      position: relative;
+      text-align: left;
+    }
+
+    .preview-content h3 {
+      color: #ece12a;
+      font-family: Georgia, serif;
+      font-size: 28px;
+      font-weight: normal;
+      margin: 10px 0 18px;
+      text-align: left;
+    }
+
+    .preview-day {
+      color: #e4b121;
+      font-size: 11px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    .preview-content p { margin: 0 0 15px; line-height: 1.85; }
+    .preview-content h4 {
+      color: #ece12a;
+      font-family: Georgia, serif;
+      font-size: 21px;
+      font-weight: normal;
+      margin: 25px 0 12px;
+    }
+    .preview-content strong { color: #ece12a; font-weight: 600; }
+    .preview-content em { color: #fff4d5; }
+    .preview-content ul { padding-left: 24px; margin: 8px 0 19px; }
+    .preview-content li { padding-left: 4px; margin: 7px 0; line-height: 1.75; }
+    .preview-content hr {
+      border: 0;
+      border-top: 1px solid #e4b12199;
+      margin: 22px auto;
+      width: 55%;
+    }
+    #previewMedia { margin-top: 20px; }
+    #previewMedia img, #previewMedia video {
+      display: block;
+      max-width: 100%;
+      height: auto;
+      margin: 15px auto;
+      border-radius: 12px;
+    }
+    #previewMedia audio { width: 100%; margin: 15px 0; }
+    #previewMedia a {
+      display: inline-block;
+      color: #ece12a;
+      text-decoration: underline;
+      overflow-wrap: anywhere;
+    }
+    .preview-hint {
+      margin-top: 22px;
+      padding-top: 12px;
+      border-top: 1px solid #ffffff44;
+      color: #ffffffc9;
+      font-size: 11px;
+      text-align: center;
+    }
+    .preview-content .close-preview {
+      display: block;
+      margin-left: auto;
+      border: 0;
+      background: transparent;
+      color: white;
+      font-size: 25px;
+      cursor: pointer;
+      padding: 0 6px;
+    }
+    .preview-button {
+      background: white;
+      color: #49364c;
+      margin-right: 8px;
+    }
+
     .hidden { display: none !important; }
 
     #message {
@@ -270,6 +374,7 @@
           <label for="published">Publicar esta ventanita</label>
         </div>
 
+        <button type="button" id="previewButton" class="preview-button">Vista previa ♡</button>
         <button id="saveButton" type="submit">Guardar cambios</button>
         <button type="button" id="cancelButton" class="secondary">Cancelar</button>
       </form>
@@ -278,6 +383,18 @@
 
   <p id="message" role="status">Cargando...</p>
 </div>
+
+  <div id="previewModal" class="preview-modal" role="dialog" aria-modal="true" aria-labelledby="previewTitle">
+    <div class="preview-content">
+      <button type="button" id="closePreview" class="close-preview" aria-label="Cerrar vista previa">×</button>
+      <div id="previewDay" class="preview-day">VENTANITA 01</div>
+      <h3 id="previewTitle"></h3>
+      <div id="previewText"></div>
+      <div id="previewMedia"></div>
+      <div class="preview-hint">Vista previa privada · Esto todavía no se publicó ♡</div>
+    </div>
+  </div>
+
 
 <script>
   const SUPABASE_URL = "https://gktohrkxtvednuwadlra.supabase.co";
@@ -300,6 +417,194 @@
   function showMessage(text) {
     message.textContent = text;
   }
+
+
+  // La vista previa usa el mismo formato de texto que el calendario.
+  const previewModal = document.getElementById("previewModal");
+  const previewTitle = document.getElementById("previewTitle");
+  const previewDay = document.getElementById("previewDay");
+  const previewText = document.getElementById("previewText");
+  const previewMedia = document.getElementById("previewMedia");
+  let previewObjectUrl = null;
+
+  function escapeHTML(value) {
+    return value.replace(/[&<>"']/g, character => ({
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#39;"
+    })[character]);
+  }
+
+  function formatInline(value) {
+    let safe = escapeHTML(value);
+    safe = safe.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
+    safe = safe.replace(/(^|[^*])\*([^*\n]+)\*(?!\*)/g, "$1<em>$2</em>");
+    return safe;
+  }
+
+  function renderPreviewText(value) {
+    previewText.replaceChildren();
+    const lines = (value || "").replace(/\r\n?/g, "\n").split("\n");
+    let paragraph = [];
+    let list = null;
+
+    function flushParagraph() {
+      if (!paragraph.length) return;
+      const p = document.createElement("p");
+      p.innerHTML = paragraph.map(formatInline).join(" ");
+      previewText.appendChild(p);
+      paragraph = [];
+    }
+
+    function closeList() {
+      if (list) {
+        previewText.appendChild(list);
+        list = null;
+      }
+    }
+
+    for (const rawLine of lines) {
+      const line = rawLine.trim();
+      if (!line) {
+        flushParagraph();
+        closeList();
+        continue;
+      }
+
+      const heading = line.match(/^##\s+(.+)$/);
+      if (heading) {
+        flushParagraph();
+        closeList();
+        const h = document.createElement("h4");
+        h.innerHTML = formatInline(heading[1]);
+        previewText.appendChild(h);
+        continue;
+      }
+
+      if (/^(---|___|\*\*\*)$/.test(line)) {
+        flushParagraph();
+        closeList();
+        previewText.appendChild(document.createElement("hr"));
+        continue;
+      }
+
+      const item = line.match(/^[-*]\s+(.+)$/);
+      if (item) {
+        flushParagraph();
+        if (!list) list = document.createElement("ul");
+        const li = document.createElement("li");
+        li.innerHTML = formatInline(item[1]);
+        list.appendChild(li);
+        continue;
+      }
+
+      closeList();
+      paragraph.push(line);
+    }
+
+    flushParagraph();
+    closeList();
+  }
+
+  function closePreview() {
+    previewModal.classList.remove("visible");
+    previewMedia.replaceChildren();
+    if (previewObjectUrl) {
+      URL.revokeObjectURL(previewObjectUrl);
+      previewObjectUrl = null;
+    }
+  }
+
+  function addPreviewMedia(url, type, title) {
+    if (!url) return;
+
+    let element;
+    if (type === "imagen") {
+      element = document.createElement("img");
+      element.src = url;
+      element.alt = title || "Imagen de la ventanita";
+    } else if (type === "video") {
+      element = document.createElement("video");
+      element.src = url;
+      element.controls = true;
+      element.playsInline = true;
+    } else if (type === "audio") {
+      element = document.createElement("audio");
+      element.src = url;
+      element.controls = true;
+    } else {
+      element = document.createElement("a");
+      element.href = url;
+      element.target = "_blank";
+      element.rel = "noopener noreferrer";
+      element.textContent = type === "pdf" ? "Abrir PDF ♡" : "Abrir recurso ♡";
+    }
+    previewMedia.appendChild(element);
+  }
+
+  async function showPreview() {
+    const number = Number(document.getElementById("doorNumber").value);
+    const title = document.getElementById("doorTitle").value.trim();
+    const content = document.getElementById("doorContent").value;
+    const type = document.getElementById("doorType").value;
+    const selectedFile = mediaFile.files[0];
+    const removeCurrent = document.getElementById("removeMedia").checked;
+    const mediaUrl = document.getElementById("mediaUrl").value.trim();
+    const mediaPath = document.getElementById("mediaPath").value;
+
+    previewDay.textContent = "VENTANITA " + String(number).padStart(2, "0");
+    previewTitle.textContent = title || ("Ventanita " + number);
+    renderPreviewText(content);
+    previewMedia.replaceChildren();
+
+    if (previewObjectUrl) {
+      URL.revokeObjectURL(previewObjectUrl);
+      previewObjectUrl = null;
+    }
+
+    previewModal.classList.add("visible");
+
+    try {
+      if (removeCurrent) return;
+
+      if (selectedFile) {
+        previewObjectUrl = URL.createObjectURL(selectedFile);
+        addPreviewMedia(previewObjectUrl, type, title);
+        return;
+      }
+
+      if (mediaUrl) {
+        addPreviewMedia(mediaUrl, type, title);
+        return;
+      }
+
+      if (mediaPath) {
+        const { data, error } = await client.storage
+          .from("diciembre-magico")
+          .createSignedUrl(mediaPath, 3600);
+
+        if (error) throw error;
+        addPreviewMedia(data?.signedUrl, type, title);
+      }
+    } catch (error) {
+      console.error("Error al preparar la vista previa:", error);
+      const message = document.createElement("p");
+      message.textContent = "No pudimos cargar el archivo para la vista previa. Revisá que esté guardado y volvé a intentarlo. ♡";
+      previewMedia.appendChild(message);
+    }
+  }
+
+  document.getElementById("previewButton").addEventListener("click", showPreview);
+  document.getElementById("closePreview").addEventListener("click", closePreview);
+  previewModal.addEventListener("click", event => {
+    if (event.target === previewModal) closePreview();
+  });
+  document.addEventListener("keydown", event => {
+    if (event.key === "Escape") closePreview();
+  });
+
 
   async function checkAdmin() {
     const { data: { session } } = await client.auth.getSession();
