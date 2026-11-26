@@ -261,8 +261,50 @@
     }
 
     #modal-text {
-      white-space: pre-wrap;
       overflow-wrap: anywhere;
+      text-align: left;
+    }
+
+    #modal-text p {
+      margin: 0 0 15px;
+      line-height: 1.85;
+    }
+
+    #modal-text h4 {
+      color: var(--amarillo);
+      font-family: Georgia, serif;
+      font-size: 21px;
+      font-weight: normal;
+      text-align: left;
+      margin: 25px 0 12px;
+    }
+
+    #modal-text strong {
+      color: var(--amarillo);
+      font-weight: 600;
+    }
+
+    #modal-text em {
+      color: #fff4d5;
+    }
+
+    #modal-text ul {
+      text-align: left;
+      padding-left: 24px;
+      margin: 8px 0 19px;
+    }
+
+    #modal-text li {
+      padding-left: 4px;
+      margin: 7px 0;
+      line-height: 1.75;
+    }
+
+    #modal-text hr {
+      border: 0;
+      border-top: 1px solid #e4b12199;
+      margin: 22px auto;
+      width: 55%;
     }
 
     #modal-media {
@@ -390,7 +432,7 @@
     <div class="modal-content">
       <button class="close" id="close" aria-label="Cerrar">×</button>
       <h3 id="modal-title"></h3>
-      <p id="modal-text"></p>
+      <div id="modal-text"></div>
       <div id="modal-media"></div>
     </div>
   </div>
@@ -450,6 +492,89 @@
       return 24;
     }
 
+    // Convierte texto con formato sencillo en elementos visuales seguros.
+    function escapeHTML(value) {
+      return value.replace(/[&<>"']/g, character => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;"
+      })[character]);
+    }
+
+    function formatInline(value) {
+      let safe = escapeHTML(value);
+      safe = safe.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
+      safe = safe.replace(/(^|[^*])\*([^*\n]+)\*(?!\*)/g, "$1<em>$2</em>");
+      return safe;
+    }
+
+    function renderFormattedText(value) {
+      modalText.replaceChildren();
+      const lines = (value || "").replace(/\r\n?/g, "\n").split("\n");
+      let paragraph = [];
+      let list = null;
+
+      function flushParagraph() {
+        if (!paragraph.length) return;
+        const p = document.createElement("p");
+        p.innerHTML = paragraph.map(formatInline).join(" ");
+        modalText.appendChild(p);
+        paragraph = [];
+      }
+
+      function closeList() {
+        if (list) {
+          modalText.appendChild(list);
+          list = null;
+        }
+      }
+
+      for (const rawLine of lines) {
+        const line = rawLine.trim();
+
+        if (!line) {
+          flushParagraph();
+          closeList();
+          continue;
+        }
+
+        const heading = line.match(/^##\s+(.+)$/);
+        if (heading) {
+          flushParagraph();
+          closeList();
+          const h = document.createElement("h4");
+          h.innerHTML = formatInline(heading[1]);
+          modalText.appendChild(h);
+          continue;
+        }
+
+        if (/^(---|___|\*\*\*)$/.test(line)) {
+          flushParagraph();
+          closeList();
+          modalText.appendChild(document.createElement("hr"));
+          continue;
+        }
+
+        const item = line.match(/^[-*]\s+(.+)$/);
+        if (item) {
+          flushParagraph();
+          if (!list) list = document.createElement("ul");
+          const li = document.createElement("li");
+          li.innerHTML = formatInline(item[1]);
+          list.appendChild(li);
+          continue;
+        }
+
+        closeList();
+        paragraph.push(line);
+      }
+
+      flushParagraph();
+      closeList();
+    }
+
     function addMedia(record) {
       if (!record.media_url) return;
 
@@ -505,7 +630,7 @@
 
     async function openDoor(record) {
       modalTitle.textContent = record.titulo || ("Ventanita " + record.numero);
-      modalText.textContent = record.contenido || "";
+      renderFormattedText(record.contenido || "");
       modalMedia.replaceChildren();
 
       const loading = document.createElement("p");
