@@ -344,7 +344,6 @@
         <input
           id="mediaFile"
           type="file"
-          accept="image/*,video/*,audio/*,application/pdf"
         >
 
         <p class="help">
@@ -414,10 +413,60 @@
   const mediaStatus = document.getElementById("mediaStatus");
   const saveButton = document.getElementById("saveButton");
 
+  // Aceptamos MIME habituales y también extensiones, porque iOS a veces
+  // informa un tipo vacío o distinto aunque el archivo sea un MP3 válido.
+  function isAllowedMediaFile(file) {
+    const type = (file.type || "").toLowerCase();
+    const name = (file.name || "").toLowerCase();
+    const extension = name.includes(".") ? name.split(".").pop() : "";
+    const allowedExtensions = new Set([
+      "jpg", "jpeg", "png", "gif", "webp", "avif",
+      "mp4", "mov", "m4v", "webm",
+      "mp3", "m4a", "wav", "aac", "ogg", "opus", "flac",
+      "pdf"
+    ]);
+
+    return (
+      type.startsWith("image/") ||
+      type.startsWith("video/") ||
+      type.startsWith("audio/") ||
+      type === "application/pdf" ||
+      allowedExtensions.has(extension)
+    );
+  }
+
+  function getMediaContentType(file) {
+    if (file.type) return file.type;
+
+    const name = (file.name || "").toLowerCase();
+    const extension = name.includes(".") ? name.split(".").pop() : "";
+    const fallbackTypes = {
+      mp3: "audio/mpeg",
+      m4a: "audio/mp4",
+      wav: "audio/wav",
+      aac: "audio/aac",
+      ogg: "audio/ogg",
+      opus: "audio/ogg",
+      flac: "audio/flac",
+      mp4: "video/mp4",
+      m4v: "video/mp4",
+      mov: "video/quicktime",
+      webm: "video/webm",
+      pdf: "application/pdf",
+      jpg: "image/jpeg",
+      jpeg: "image/jpeg",
+      png: "image/png",
+      gif: "image/gif",
+      webp: "image/webp",
+      avif: "image/avif"
+    };
+
+    return fallbackTypes[extension] || "application/octet-stream";
+  }
+
   function showMessage(text) {
     message.textContent = text;
   }
-
 
   // La vista previa usa el mismo formato de texto que el calendario.
   const previewModal = document.getElementById("previewModal");
@@ -747,11 +796,7 @@
       return;
     }
 
-    const validType =
-      file.type.startsWith("image/") ||
-      file.type.startsWith("video/") ||
-      file.type.startsWith("audio/") ||
-      file.type === "application/pdf";
+    const validType = isAllowedMediaFile(file);
 
     if (!validType) {
       mediaFile.value = "";
@@ -786,11 +831,7 @@
       if (selectedFile) {
         const maxSize = 50 * 1024 * 1024;
 
-        const validType =
-          selectedFile.type.startsWith("image/") ||
-          selectedFile.type.startsWith("video/") ||
-          selectedFile.type.startsWith("audio/") ||
-          selectedFile.type === "application/pdf";
+        const validType = isAllowedMediaFile(selectedFile);
 
         if (selectedFile.size > maxSize) {
           throw new Error("El archivo supera el límite de 50 MB.");
@@ -820,7 +861,7 @@
           .upload(filePath, selectedFile, {
             cacheControl: "3600",
             upsert: false,
-            contentType: selectedFile.type
+            contentType: getMediaContentType(selectedFile)
           });
 
         if (uploadError) {
